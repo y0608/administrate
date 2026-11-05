@@ -1,4 +1,6 @@
 class Product < ApplicationRecord
+  has_rich_text :banner
+
   def self.policy_class=(policy)
     @policy_class = policy
   end
@@ -30,7 +32,7 @@ class Product < ApplicationRecord
 
   def name=(value)
     self.slug = value.to_s.parameterize
-    super(value)
+    super
   end
 
   def to_param

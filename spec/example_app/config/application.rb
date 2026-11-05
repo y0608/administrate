@@ -1,9 +1,12 @@
-require File.expand_path("boot", __dir__)
+require_relative "boot"
 
+require "logger"
 require "active_model/railtie"
 require "active_record/railtie"
 require "action_controller/railtie"
 require "action_view/railtie"
+require "action_text/engine"
+require "active_storage/engine"
 
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
@@ -25,6 +28,7 @@ module AdministratePrototype
 
     config.action_controller.action_on_unpermitted_parameters = :raise
     config.active_record.time_zone_aware_types = %i[datetime time]
+    config.active_support.to_time_preserves_timezone = :zone
 
     # Opt-out of FLoC: https://amifloced.org/
     config.action_dispatch

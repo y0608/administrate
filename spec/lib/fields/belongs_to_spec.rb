@@ -133,22 +133,6 @@ describe Administrate::Field::BelongsTo do
         /^Line Item \#\d\d\d\d$/
       )
     end
-
-    it "triggers a deprecation warning" do
-      line_item = create(:line_item)
-      field_class = Administrate::Field::BelongsTo.with_options(
-        class_name: "Customer"
-      )
-      field = field_class.new(
-        :product,
-        line_item.product,
-        :show,
-        resource: line_item
-      )
-      field.associated_class
-      expect(Administrate.deprecator).to have_received(:warn)
-        .with(/:class_name is deprecated/)
-    end
   end
 
   describe ":include_blank option" do
@@ -305,6 +289,23 @@ describe Administrate::Field::BelongsTo do
         resources = field.associated_resource_options.compact.to_h.keys
 
         expect(resources).to eq ["customer-3", "customer-2"]
+      end
+
+      context "when scope with argument" do
+        it "returns the resources within the passed scope" do
+          # Building instead of creating, to avoid a dependent customer being
+          # created, leading to random failures
+          order = build(:order)
+
+          1.upto(3) { |i| create :customer, name: "customer-#{i}" }
+          scope = ->(_field) { Customer.order(name: :desc).limit(2) }
+
+          association = Administrate::Field::BelongsTo.with_options(scope: scope)
+          field = association.new(:customer, [], :show, resource: order)
+          resources = field.associated_resource_options.compact.to_h.keys
+
+          expect(resources).to eq ["customer-3", "customer-2"]
+        end
       end
     end
   end

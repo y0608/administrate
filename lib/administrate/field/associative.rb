@@ -37,7 +37,7 @@ module Administrate
 
       def associated_class_name
         if option_given?(:class_name)
-          deprecated_option(:class_name)
+          options.fetch(:class_name)
         else
           self.class.associated_class_name(
             resource.class,
@@ -50,10 +50,16 @@ module Administrate
         "select"
       end
 
+      def namespace
+        @namespace ||= options[:dashboard]&.class&.respond_to?(:namespace) ? options[:dashboard]&.class.namespace : nil
+      end
+
       private
 
       def associated_dashboard
-        "#{associated_class_name}Dashboard".constantize.new
+        namespaced_dashboard_class_prefix = [namespace&.capitalize, associated_class_name].compact_blank.join("::")
+        # "#{namespaced_dashboard_class_prefix}Dashboard".constantize.new
+        ("#{namespaced_dashboard_class_prefix}Dashboard".safe_constantize || "#{associated_class_name}Dashboard".constantize).new
       end
 
       def primary_key

@@ -21,7 +21,7 @@ module Administrate
           end
         related_dashboard_attributes =
           Administrate::ResourceResolver
-            .new("#{namespace}/#{final_associated_class_name}")
+            .new("#{namespace_with_default}/#{final_associated_class_name}")
             .dashboard_class.new.permitted_attributes + [:id]
         {"#{attr}_attributes": related_dashboard_attributes}
       end
@@ -54,13 +54,13 @@ module Administrate
 
       private
 
-      def namespace
-        @namepace ||= (options[:namespace] || "admin")
+      def namespace_with_default
+        namespace || 'admin'
       end
 
       def resolver
         @resolver ||=
-          Administrate::ResourceResolver.new("#{namespace}/#{associated_class.name}")
+          Administrate::ResourceResolver.new("#{namespace_with_default}/#{associated_class.name}")
       end
     end
   end

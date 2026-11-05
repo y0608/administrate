@@ -140,7 +140,11 @@ describe Administrate::Generators::DashboardGenerator, :generator do
         end
 
         class Shipment < Administrate::Generators::TestRecord
-          enum status: %i[ready processing shipped]
+          if Rails.gem_version >= Gem::Version.new("7.0")
+            enum :status, %i[ready processing shipped]
+          else
+            enum status: %i[ready processing shipped]
+          end
           reset_column_information
         end
 
@@ -161,7 +165,11 @@ describe Administrate::Generators::DashboardGenerator, :generator do
         end
 
         class Shipment < Administrate::Generators::TestRecord
-          enum status: %i[ready processing shipped]
+          if Rails.gem_version >= Gem::Version.new("7.0")
+            enum :status, %i[ready processing shipped]
+          else
+            enum status: %i[ready processing shipped]
+          end
           reset_column_information
         end
 
@@ -430,6 +438,29 @@ describe Administrate::Generators::DashboardGenerator, :generator do
     ensure
       remove_constants :Foo
       Manager.send(:remove_const, :FoosController)
+    end
+
+    it "uses the given model namespace to create controllers" do
+      ActiveRecord::Schema.define { create_table :foo_bars }
+      module Foo
+        def self.table_name_prefix
+          "foo_"
+        end
+
+        class Bar < Administrate::Generators::TestRecord; end
+      end
+
+      run_generator ["Foo::Bar"]
+      path = file("app/controllers/admin/foo/bars_controller.rb")
+      result = File.foreach(path).first(2).join
+      expected = <<~EXPECTED
+        module Admin
+          class Foo::BarsController < Admin::ApplicationController
+      EXPECTED
+
+      expect(result).to eq(expected)
+    ensure
+      remove_constants :Foo
     end
   end
 end
